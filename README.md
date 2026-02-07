@@ -1,12 +1,4 @@
-I understand perfectly. You want a **premium, high-impact README** specifically tailored for your **Voice Sentiment Analysis Dashboard** project, following the same professional structure as your Binance bot reference.
 
-This README is designed to impress recruiters and data science hiring managers by highlighting your **NLP, API integration, and UI development** skills.
-
----
-
-### 🟢 Copy and Paste the text below into your GitHub `README.md`
-
-```markdown
 # 🎙️ VibeAI: Voice Sentiment Analysis Dashboard
 
 An end-to-end **AI-powered Web Application** that transcribes human speech and analyzes emotional sentiment in real-time.  
@@ -137,3 +129,4 @@ streamlit run app.py
 **Would you like me to help you write a 2-sentence LinkedIn post to share this project once you've uploaded it?**
 
 ```
+

@@ -7,6 +7,7 @@ This project demonstrates expertise in **Natural Language Processing (NLP)**, **
 ---
 
 ## 🖼️ Project Overview
+<img width="1781" height="781" alt="Screenshot 2026-02-07 144624" src="https://github.com/user-attachments/assets/0e4ee6db-0543-422d-b94b-56ebc55261f4" />
 
 VibeAI provides a "Classy & Premium" interface for users to upload voice files and receive instant emotional intelligence insights. It converts complex audio data into actionable sentiment metrics (Positive, Neutral, Negative) using the VADER algorithm.
 
@@ -115,18 +116,12 @@ streamlit run app.py
 
 🌐 GitHub: [github.com/artichaudhari](https://github.com/artichaudhari)
 
-💼 LinkedIn: [Your LinkedIn Profile URL Here]
+💼 LinkedIn: https://www.linkedin.com/in/arti-chaudhari-b998a82a9/
 
 ---
 
 ⭐ **If you found this project insightful, don’t forget to star the repo!**
 
-```
-
----
 
 
-**Would you like me to help you write a 2-sentence LinkedIn post to share this project once you've uploaded it?**
-
-```
 

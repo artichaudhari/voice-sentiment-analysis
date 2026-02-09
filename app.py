@@ -3,8 +3,11 @@ import speech_recognition as sr
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 import plotly.graph_objects as go
+from pydub import AudioSegment
+import tempfile
+import os
 
-# Ensure VADER lexicon is downloaded
+# Ensure VADER lexicon
 try:
     nltk.data.find('sentiment/vader_lexicon.zip')
 except LookupError:
@@ -12,152 +15,114 @@ except LookupError:
 
 sia = SentimentIntensityAnalyzer()
 
-# Page Setup - 'wide' is better for side-by-side dashboards
 st.set_page_config(page_title="VibeAI Premium", page_icon="💎", layout="wide")
 
-# --- ENHANCED CLASSY CSS ---
+# ---------- CSS ----------
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
-    
-    /* Global Styles */
-    .stApp {
-        background: radial-gradient(circle at 20% 10%, #1e293b 0%, #0f172a 100%);
-        font-family: 'Plus Jakarta Sans', sans-serif;
-    }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+.stApp {
+    background: radial-gradient(circle at 20% 10%, #1e293b 0%, #0f172a 100%);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.glass-card {
+    background: rgba(255,255,255,0.05);
+    border-radius: 24px;
+    padding: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px);
+}
+.metric-box {
+    text-align:center;
+    padding:15px;
+    border-radius:15px;
+    background: rgba(255,255,255,0.03);
+}
+</style>
+""", unsafe_allow_html=True)
 
-    /* Modern Scrollbar */
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+# ---------- HEADER ----------
+st.markdown("<h1 style='text-align:center;'>💎 VibeAI Premium</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#94a3b8;'>Sophisticated Voice Emotion Analytics</p>", unsafe_allow_html=True)
 
-    /* Glass Card Refinement */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        padding: 30px;
-        margin-bottom: 20px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    }
+# ---------- AUDIO HANDLING ----------
+def convert_to_wav(uploaded_file):
+    audio = AudioSegment.from_file(uploaded_file)
+    temp_wav = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    audio.export(temp_wav.name, format="wav")
+    return temp_wav.name
 
-    /* Gradient Title */
-    .title-text {
-        font-size: 4rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #6366f1 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -3px;
-        text-align: center;
-        margin-bottom: 0px;
-    }
+# ---------- MAIN ----------
+col1, col2 = st.columns([1, 1.2], gap="large")
 
-    .sub-text {
-        color: #94a3b8;
-        font-size: 1.2rem;
-        text-align: center;
-        margin-bottom: 50px;
-        font-weight: 300;
-    }
+with col1:
+    st.subheader("🎙️ Upload Audio")
+    audio_file = st.file_uploader(
+        "Supports WAV, MP3, MPEG, M4A, OGG",
+        type=["wav", "mp3", "mpeg", "m4a", "ogg"]
+    )
 
-    /* Metric Box */
-    .metric-box {
-        text-align: center;
-        padding: 15px;
-        border-radius: 15px;
-        background: rgba(255, 255, 255, 0.03);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    if audio_file:
+        st.audio(audio_file)
 
-# --- UI HEADER ---
-st.markdown('<h1 class="title-text">VibeAI Premium</h1>', unsafe_allow_html=True)
-st.markdown('<p class="sub-text">Sophisticated Voice Emotion Analytics</p>', unsafe_allow_html=True)
+        recognizer = sr.Recognizer()
+        with st.spinner("✨ Processing audio..."):
+            try:
+                # Convert any format to WAV
+                wav_path = convert_to_wav(audio_file)
 
-# --- MAIN CONTENT AREA ---
-# Using a central container to keep things from touching the screen edges
-main_container = st.container()
+                with sr.AudioFile(wav_path) as source:
+                    audio = recognizer.record(source)
 
-with main_container:
-    col1, col2 = st.columns([1, 1.2], gap="large")
+                text = recognizer.recognize_google(audio)
+                os.remove(wav_path)
 
-    with col1:
-        st.markdown("### 🎙️ Audio Input")
-        with st.container(): # Grouping for better spacing
-            audio_file = st.file_uploader("", type=["wav"], label_visibility="collapsed")
-            
-            if audio_file:
-                st.audio(audio_file, format='audio/wav')
-                
-                recognizer = sr.Recognizer()
-                with st.spinner("✨ Decoding Audio Stream..."):
-                    try:
-                        with sr.AudioFile(audio_file) as source:
-                            audio = recognizer.record(source)
-                        text = recognizer.recognize_google(audio)
-                        
-                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-                        st.markdown("<p style='color:#6366f1; font-weight:700; font-size:0.8rem; margin-bottom:10px;'>TRANSCRIPTION</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p style='font-size:1.2rem; line-height:1.6; color:#e2e8f0;'>\"{text}\"</p>", unsafe_allow_html=True)
-                        st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        scores = sia.polarity_scores(text)
-                        compound = scores["compound"]
-                    except:
-                        st.error("Neural engine failed to parse audio. Try a clearer file.")
-                        text = None
+                st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+                st.markdown("**📝 Transcription**")
+                st.write(text)
+                st.markdown("</div>", unsafe_allow_html=True)
 
-    with col2:
-        if audio_file and text:
-            # st.markdown("### 💎 Emotional Intelligence")
-            st.markdown("<h3 style='color: white;'>💎 Emotional Intelligence</h3>", unsafe_allow_html=True)
-            # Gauge Chart
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = (compound + 1) * 50,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                gauge = {
-                    'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "#94a3b8"},
-                    'bar': {'color': "#6366f1"},
-                    'bgcolor': "rgba(0,0,0,0)",
-                    'borderwidth': 0,
-                    'steps': [
-                        {'range': [0, 35], 'color': 'rgba(239, 68, 68, 0.2)'},
-                        {'range': [35, 65], 'color': 'rgba(234, 179, 8, 0.2)'},
-                        {'range': [65, 100], 'color': 'rgba(34, 197, 94, 0.2)'}
-                    ],
-                }
-            ))
-            fig.update_layout(
-                paper_bgcolor='rgba(0,0,0,0)', 
-                plot_bgcolor='rgba(0,0,0,0)', 
-                font={'color': "#f8fafc", 'family': "Plus Jakarta Sans"}, 
-                height=380,
-                margin=dict(l=20, r=20, t=50, b=20)
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
+                scores = sia.polarity_scores(text)
+                compound = scores["compound"]
 
-            # Styled Metrics
-            m1, m2, m3 = st.columns(3)
-            with m1:
-                st.markdown(f'<div class="metric-box"><p style="color:#94a3b8;margin:0;">Positive</p><h2 style="color:#22c55e;margin:0;">{scores["pos"]:.2f}</h2></div>', unsafe_allow_html=True)
-            with m2:
-                st.markdown(f'<div class="metric-box"><p style="color:#94a3b8;margin:0;">Neutral</p><h2 style="color:#eab308;margin:0;">{scores["neu"]:.2f}</h2></div>', unsafe_allow_html=True)
-            with m3:
-                st.markdown(f'<div class="metric-box"><p style="color:#94a3b8;margin:0;">Negative</p><h2 style="color:#ef4444;margin:0;">{scores["neg"]:.2f}</h2></div>', unsafe_allow_html=True)
-                
-        else:
-            # Placeholder for empty state
-            st.markdown("""
-                <div class="glass-card" style="height: 400px; display: flex; align-items: center; justify-content: center; border: 2px dashed rgba(255,255,255,0.1);">
-                    <div style="text-align:center;">
-                        <h2 style="color: #475569; margin-bottom:0;">Awaiting Input</h2>
-                        <p style="color: #475569;">Upload audio to begin analysis</p>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error("❌ Unable to process audio. Please try a clearer file.")
+                text = None
 
-# Footer
-st.markdown("<br><br><p style='text-align:center; color:#475569; font-size:0.9rem;'>Powered by VADER Sentiment & Google Speech Engine</p>", unsafe_allow_html=True)
+with col2:
+    if audio_file and text:
+        fig = go.Figure(go.Indicator(
+            mode="gauge+number",
+            value=(compound + 1) * 50,
+            gauge={
+                "axis": {"range": [0, 100]},
+                "bar": {"color": "#6366f1"},
+                "steps": [
+                    {"range": [0, 35], "color": "rgba(239,68,68,0.3)"},
+                    {"range": [35, 65], "color": "rgba(234,179,8,0.3)"},
+                    {"range": [65, 100], "color": "rgba(34,197,94,0.3)"}
+                ],
+            }
+        ))
+
+        fig.update_layout(
+            height=350,
+            paper_bgcolor="rgba(0,0,0,0)",
+            font={"color": "white"}
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Positive", f"{scores['pos']:.2f}")
+        m2.metric("Neutral", f"{scores['neu']:.2f}")
+        m3.metric("Negative", f"{scores['neg']:.2f}")
+
+    else:
+        st.markdown("""
+        <div class="glass-card" style="height:380px;display:flex;align-items:center;justify-content:center;">
+            <p style="color:#64748b;">Upload any audio to begin analysis</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+st.markdown("<p style='text-align:center;color:#475569;'>Powered by VADER & Speech Recognition</p>", unsafe_allow_html=True)

@@ -25,17 +25,45 @@ st.set_page_config(
 # ---------- CSS ----------
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
 .stApp {
     background: radial-gradient(circle at 20% 10%, #1e293b 0%, #0f172a 100%);
     color: white;
     font-family: 'Plus Jakarta Sans', sans-serif;
 }
+
+/* Glass card */
 .glass-card {
     background: rgba(255,255,255,0.05);
     border-radius: 20px;
     padding: 25px;
     border: 1px solid rgba(255,255,255,0.1);
     backdrop-filter: blur(12px);
+}
+
+/* File uploader fix */
+[data-testid="stFileUploader"] {
+    color: white !important;
+}
+
+[data-testid="stFileUploader"] label {
+    color: #e5e7eb !important;
+}
+
+[data-testid="stFileUploader"] section {
+    background: rgba(255,255,255,0.05) !important;
+}
+
+[data-testid="stFileUploader"] button {
+    color: white !important;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    border: none;
+}
+
+[data-testid="stFileUploader"] small {
+    color: #cbd5f5 !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -71,7 +99,7 @@ with col1:
     st.subheader("🎙️ Upload Audio")
 
     audio_file = st.file_uploader(
-        "Supported: WAV, MP3, M4A, OGG",
+        "Supported formats: WAV, MP3, M4A, OGG",
         type=["wav", "mp3", "m4a", "ogg"]
     )
 
@@ -87,10 +115,7 @@ with col1:
                 wav_path = convert_to_wav(audio_file)
 
                 with sr.AudioFile(wav_path) as source:
-                    audio_data = recognizer.record(
-                        source,
-                        duration=30
-                    )
+                    audio_data = recognizer.record(source, duration=30)
 
                 text = recognizer.recognize_google(audio_data)
                 scores = sia.polarity_scores(text)

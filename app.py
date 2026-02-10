@@ -18,14 +18,24 @@ sia = SentimentIntensityAnalyzer()
 # --- APP CONFIG ---
 st.set_page_config(page_title="VibeAI Premium", page_icon="💎", layout="wide")
 
-# --- CSS STYLING ---
+# --- CSS STYLING (UPDATED FOR WHITE TEXT) ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+/* Global Background and Text Color */
 .stApp {
     background: radial-gradient(circle at 20% 10%, #1e293b 0%, #0f172a 100%);
     font-family: 'Plus Jakarta Sans', sans-serif;
+    color: white !important;
 }
+
+/* Force headers, labels, and metrics to be white */
+h1, h2, h3, p, span, label, .stMarkdown, [data-testid="stMetricValue"] {
+    color: white !important;
+}
+
+/* Glassmorphism Card Effect */
 .glass-card {
     background: rgba(255,255,255,0.05);
     border-radius: 24px;
@@ -33,13 +43,18 @@ st.markdown("""
     border: 1px solid rgba(255,255,255,0.1);
     backdrop-filter: blur(12px);
     margin-bottom: 20px;
+    color: white;
+}
+
+/* File Uploader Text */
+.stFileUploader section {
+    background-color: rgba(255, 255, 255, 0.05) !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
 # --- HELPER FUNCTIONS ---
 def convert_to_wav(uploaded_file):
-    """Converts uploaded audio to a format SpeechRecognition likes."""
     try:
         audio = AudioSegment.from_file(uploaded_file)
         # Convert to mono and 16k Hz for better recognition
@@ -54,7 +69,7 @@ def convert_to_wav(uploaded_file):
 
 # --- HEADER ---
 st.markdown("<h1 style='text-align:center;'>💎 VibeAI Premium</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;color:#94a3b8;'>Sophisticated Voice Emotion Analytics</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#94a3b8 !important;'>Sophisticated Voice Emotion Analytics</p>", unsafe_allow_html=True)
 
 # --- MAIN LAYOUT ---
 col1, col2 = st.columns([1, 1.2], gap="large")
@@ -79,7 +94,6 @@ with col1:
             if wav_path:
                 try:
                     with sr.AudioFile(wav_path) as source:
-                        # Clean up background hiss
                         recognizer.adjust_for_ambient_noise(source, duration=0.5)
                         audio_data = recognizer.record(source)
                     
@@ -88,21 +102,19 @@ with col1:
                     
                     # Sentiment Analysis
                     scores = sia.polarity_scores(text)
-                    compound = scores["compound"]
 
                     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
-                    st.markdown("**📝 Transcription**")
+                    st.markdown("<b style='color:white;'>📝 Transcription</b>", unsafe_allow_html=True)
                     st.write(f'"{text}"')
                     st.markdown("</div>", unsafe_allow_html=True)
 
                 except sr.UnknownValueError:
-                    st.error("❌ Google Speech Recognition could not understand the audio. Is it too quiet?")
+                    st.error("❌ Google Speech Recognition could not understand the audio.")
                 except sr.RequestError:
                     st.error("❌ Service unavailable. Check your internet connection.")
                 except Exception as e:
                     st.error(f"❌ Error processing file: {e}")
                 finally:
-                    # Clean up temp file
                     if os.path.exists(wav_path):
                         os.remove(wav_path)
 
@@ -112,14 +124,14 @@ with col2:
         fig = go.Figure(go.Indicator(
             mode="gauge+number",
             value=(scores['compound'] + 1) * 50,
-            title={'text': "Sentiment Score (0-100)"},
+            title={'text': "Sentiment Score", 'font': {'color': "white"}},
             gauge={
-                "axis": {"range": [0, 100]},
+                "axis": {"range": [0, 100], "tickcolor": "white"},
                 "bar": {"color": "#6366f1"},
                 "steps": [
-                    {"range": [0, 35], "color": "rgba(239,68,68,0.3)"},
-                    {"range": [35, 65], "color": "rgba(234,179,8,0.3)"},
-                    {"range": [65, 100], "color": "rgba(34,197,94,0.3)"}
+                    {"range": [0, 35], "color": "rgba(239,68,68,0.4)"},
+                    {"range": [35, 65], "color": "rgba(234,179,8,0.4)"},
+                    {"range": [65, 100], "color": "rgba(34,197,94,0.4)"}
                 ],
             }
         ))
@@ -142,10 +154,10 @@ with col2:
     else:
         st.markdown("""
         <div class="glass-card" style="height:380px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-            <p style="color:#64748b;font-size:1.2rem;">Ready for Analysis</p>
-            <p style="color:#475569;">Upload a clear audio file to see the emotional breakdown.</p>
+            <p style="color:white;font-size:1.2rem;">Ready for Analysis</p>
+            <p style="color:#94a3b8;">Upload a clear audio file to see the emotional breakdown.</p>
         </div>
         """, unsafe_allow_html=True)
 
 st.markdown("---")
-st.markdown("<p style='text-align:center;color:#475569;'>Powered by VADER & Google Speech API</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;color:#94a3b8 !important;'>Powered by VADER & Google Speech API</p>", unsafe_allow_html=True)
